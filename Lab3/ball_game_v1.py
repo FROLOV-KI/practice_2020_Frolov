@@ -2,19 +2,21 @@ from tkinter import*
 from random import randrange as rnd, choice
 import time
 
-WIDTH = 300
-HEIGHT = 200
+WIDTH = 800
+HEIGHT = 600
 
 
-class BALL:
-    def __init__(self):
+class Ball:
+    def __init__(self, name):
+        self.name = "Ball " + str(name)
+        self.colors = ['red', 'orange', 'yellow', 'green', 'blue']
         self.r = rnd(30, 50)
         self.x = rnd(self.r, WIDTH - self.r)
         self.y = rnd(self.r, HEIGHT - self.r)
         self.ball_id = canvas.create_oval((self.x - self.r, self.y - self.r), (self.x + self.r, self.y + self.r),
-                                          fill='green', width=0)
-        self.dx = 3
-        self.dy = 3
+                                          fill=choice(self.colors), width=0)
+        self.dx = rnd(1,6)
+        self.dy = rnd(1,6)
 
     def move(self):
         self.x += self.dx
@@ -33,36 +35,43 @@ class BALL:
     def interception(self):
         pass
 
+    def is_shoot(self):
+        canvas.delete(self.ball_id)
+
+    def info(self):
+        return self.name, self.x, self.y, self.r
+
 
 def canvas_click(event):
     """Обработка клика левой кнопки мыши, регистрация поавдвния по шарику"""
-    print(x, y, r)
-    distance = ((x - event.x) ** 2 + (y - event.y) ** 2) ** 0.5
-    if distance <= r:
-        print('Got It!')
+    for ball in balls:
+        target = ball.info()
+        distance = ((target[1] - event.x) ** 2 + (target[2] - event.y) ** 2) ** 0.5
+        if distance <= target[3]:
+            print('Got {}!'.format(target[0]))
+            ball.is_shoot()
+            balls.remove(ball)
+            break
     else:
         print('miss :(')
-    print(event.x, event.y, distance)
 
 
 def tick():
-    global ball
-    ball.move()
-    ball.draw()
+    for ball in balls:
+        ball.move()
+        ball.draw()
     root.after(50, tick)
 
 
 def main():
-    global root, canvas, ball
+    global root, canvas, balls
 
     root = Tk()
     root.geometry(str(WIDTH) + "x" + str(HEIGHT))
-    canvas = Canvas(root)
+    canvas = Canvas(root, width=WIDTH, height=HEIGHT, bg='white')
     canvas.pack(anchor="nw", fill=BOTH)
     canvas.bind('<Button-1>', canvas_click)
-    ball = BALL()
-
-
+    balls = [Ball(i) for i in range(5)]
     tick()
     mainloop()
 
