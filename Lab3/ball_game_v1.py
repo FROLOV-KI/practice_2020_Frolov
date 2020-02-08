@@ -1,8 +1,37 @@
 from tkinter import*
 from random import randrange as rnd, choice
 import time
+
 WIDTH = 300
 HEIGHT = 200
+
+
+class BALL:
+    def __init__(self):
+        self.r = rnd(30, 50)
+        self.x = rnd(self.r, WIDTH - self.r)
+        self.y = rnd(self.r, HEIGHT - self.r)
+        self.ball_id = canvas.create_oval((self.x - self.r, self.y - self.r), (self.x + self.r, self.y + self.r),
+                                          fill='green', width=0)
+        self.dx = 3
+        self.dy = 3
+
+    def move(self):
+        self.x += self.dx
+        self.y += self.dy
+        if self.x + self.r > WIDTH or self.x - self.r < 0:
+            self.dx = -self.dx
+        if self.y + self.r > HEIGHT or self.y - self.r < 0:
+            self.dy = -self.dy
+
+    def draw(self):
+        canvas.move(self.ball_id, self.dx, self.dy)
+
+    def collision(self):
+        pass
+
+    def interception(self):
+        pass
 
 
 def canvas_click(event):
@@ -17,32 +46,22 @@ def canvas_click(event):
 
 
 def tick():
-    global x, y, dx, dy
-    x += dx
-    y += dy
-    if x + r > WIDTH or x - r < 0:
-        dx = -dx
-    if y + r > HEIGHT or y - r < 0:
-        dy = -dy
-    canvas.move(ball_id, dx, dy)
+    global ball
+    ball.move()
+    ball.draw()
     root.after(50, tick)
 
-def main():
-    global root, canvas
-    global ball_id, x, y, r, dx, dy  # TODO: сделать ООП рефакторинг
 
-    dx = 3
-    dy = 3
+def main():
+    global root, canvas, ball
+
     root = Tk()
     root.geometry(str(WIDTH) + "x" + str(HEIGHT))
     canvas = Canvas(root)
     canvas.pack(anchor="nw", fill=BOTH)
     canvas.bind('<Button-1>', canvas_click)
+    ball = BALL()
 
-    r = rnd(30, 50)
-    x = rnd(r, WIDTH - r)
-    y = rnd(r, HEIGHT - r)
-    ball_id = canvas.create_oval((x-r, y-r), (x+r, y+r), fill='green', width=0)
 
     tick()
     mainloop()
