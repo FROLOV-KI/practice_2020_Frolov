@@ -14,8 +14,8 @@ class Ball:
         self.y = rnd(self.r, HEIGHT - self.r)
         self.ball_id = canvas.create_oval((self.x - self.r, self.y - self.r), (self.x + self.r, self.y + self.r),
                                           fill=choice(self.colors), width=0)
-        self.dx = rnd(-6, 6)
-        self.dy = rnd(-6, 6)
+        self.dx = rnd(-8, 8)
+        self.dy = rnd(-8, 8)
 
     def move(self):
         self.x += self.dx
@@ -28,17 +28,20 @@ class Ball:
     def draw(self):
         canvas.move(self.ball_id, self.dx, self.dy)
 
-    def collision(self):
-        pass
-
-    def interception(self):
-        pass
+    def check_collision(self, other_ball_info):
+        # TODO: неудачная попытка реализовать столкновения. ПЕРЕДЕЛАТЬ!
+        collision_distance = self.r + other_ball_info[2]
+        actual_distance = ((self.x - other_ball_info[0]) ** 2 + (self.y - other_ball_info[0]) ** 2) ** 0.5
+        if not actual_distance == 0:
+            if actual_distance <= collision_distance:
+                self.dx = other_ball_info[3]
+                self.dy = other_ball_info[4]
 
     def is_shoot(self):
         canvas.delete(self.ball_id)
 
     def info(self):
-        return self.x, self.y, self.r
+        return self.x, self.y, self.r, self.dx, self.dy
 
 
 def canvas_click(event):
@@ -48,16 +51,24 @@ def canvas_click(event):
         target = ball.info()
         distance = ((target[0] - event.x) ** 2 + (target[1] - event.y) ** 2) ** 0.5
         if distance <= target[2]:
-            print('Got {} points!'.format(target[2]))
+            print('Get {} points!'.format(50 - target[2]))
             ball.is_shoot()
             balls.remove(ball)
-            points += 50 - target[2]
+            points += (50 - target[2])
             if not balls or points >= 500:
-                print('Победа')
+                print('Победа!')
                 exit()
             break
     else:
         print('miss :(')
+
+
+def collisions():
+    for ball in balls:
+        for other_ball in balls:
+            if ball is not other_ball:
+                ball.check_collision(other_ball.info())
+    root.after(35, collisions)
 
 
 def make_new_balls():
@@ -70,18 +81,17 @@ def tick():
     for ball in balls:
         ball.move()
         ball.draw()
-    root.after(50, tick)
+    root.after(30, tick)
 
 
 def main():
-    global root, canvas, balls, num
+    global root, canvas, balls
     root = Tk()
     root.geometry(str(WIDTH) + "x" + str(HEIGHT))
     canvas = Canvas(root, width=WIDTH, height=HEIGHT, bg='white')
-    canvas.pack(anchor="nw", fill=BOTH)
+    canvas.pack(anchor=NW, fill=BOTH)
     canvas.bind('<Button-1>', canvas_click)
     balls = []
-    num = 0
     make_new_balls()
     tick()
     mainloop()
