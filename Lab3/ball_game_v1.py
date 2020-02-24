@@ -1,21 +1,20 @@
 from tkinter import*
 from random import randrange as rnd, choice
 
-WIDTH = 1350
+WIDTH = 1300
 HEIGHT = 700
 
 
 class Ball:
-    def __init__(self, balls):
-
+    def __init__(self, balls)
         self.colors = ['red', 'orange', 'yellow', 'green', 'blue']
         self.r = rnd(10, 50)
         self.x = rnd(self.r, WIDTH - self.r)
         self.y = rnd(self.r, HEIGHT - self.r)
         self.ball_id = canvas.create_oval((self.x - self.r, self.y - self.r), (self.x + self.r, self.y + self.r),
                                           fill=choice(self.colors), width=0)
-        self.dx = rnd(-100, 100)/500
-        self.dy = rnd(-100, 100)/500
+        self.dx = rnd(-100, 100)/50
+        self.dy = rnd(-100, 100)/50
         self.opponents = balls
 
     def move(self):
@@ -40,17 +39,23 @@ class Ball:
 
     def check_collision(self):
         for ball in self.opponents:
-            r = ball.info()[2]
             x = ball.info()[0]
             y = ball.info()[1]
-            dx = ball.info()[3]
-            dy = ball.info()[4]
             if x != self.x and y != self.y:
+                r = ball.info()[2]
                 distance = ((x - self.x)**2 + (y - self.y)**2)**0.5
+                print("dist{0}: ".format(str(self.ball_id)), distance)
+                print("limit: ", r + self.r)
                 if distance <= r + self.r:
-                    ball.collision(self.dx, self.dy)
-                    self.dx = dx
-                    self.dy = dy
+                    dx = ball.info()[3]
+                    dy = ball.info()[4]
+                    dx_1 = (dx * r * 2 + self.dx * (self.r - r)) / (r + self.r)
+                    dy_1 = (dy * r * 2 + self.dy * (self.r - r)) / (r + self.r)
+                    dx_2 = (self.r * 2 * self.dx + (r - self.r) * dx) / (r + self.r)
+                    dy_2 = (self.r * 2 * self.dy + (r - self.r) * dy) / (r + self.r)
+                    ball.collision(dx_2, dy_2)
+                    self.dx = dx_1
+                    self.dy = dy_1
 
     def collision(self, new_dx, new_dy):
         self.dx = new_dx
@@ -76,7 +81,7 @@ def canvas_click(event):
             score += ball.is_shoot()
             print(score)
             balls.remove(ball)
-            if not balls or score >= 500:
+            if not balls or score >= 1000:
                 print('Победа!')
                 exit()
             break
@@ -85,7 +90,7 @@ def canvas_click(event):
 
 
 def make_new_balls():
-    if len(balls) < 10:
+    if len(balls) < 5:
         new = Ball(balls)
         balls.append(new)
     root.after(1000, make_new_balls)
@@ -96,13 +101,7 @@ def tick():
         ball.check_collision()
         ball.move()
         ball.draw()
-    root.after(1, tick)
-
-
-def tick2():
-    for ball in balls:
-        ball.check_collision()
-    root.after(1, tick)
+    root.after(10, tick)
 
 
 def main():
@@ -116,7 +115,6 @@ def main():
     score = 0
     balls = []
     make_new_balls()
-    tick2()
     tick()
     mainloop()
 
