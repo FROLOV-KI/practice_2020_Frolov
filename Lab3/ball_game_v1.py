@@ -1,8 +1,8 @@
 from tkinter import*
 from random import randrange as rnd, choice
 
-WIDTH = 1000
-HEIGHT = 500
+WIDTH = 1350
+HEIGHT = 700
 
 
 class Ball:
@@ -19,6 +19,7 @@ class Ball:
         self.opponents = balls
 
     def move(self):
+        """Движение в рамках холста"""
         if self.x + self.r + self.dx <= WIDTH or self.x + self.r + self.dx >= 0:
             self.x += self.dx
         else:
@@ -28,7 +29,7 @@ class Ball:
             self.y += self.dy
         else:
             self.y += self.y + self.r + self.dy - HEIGHT
-
+        """Столкновение со стенкой"""
         if self.x + self.r >= WIDTH or self.x - self.r <= 0:
             self.dx = -self.dx
         if self.y + self.r >= HEIGHT or self.y - self.r <= 0:
@@ -37,8 +38,23 @@ class Ball:
     def draw(self):
         canvas.move(self.ball_id, self.dx, self.dy)
 
-    def check_collision(self, other_ball_info):
-        pass
+    def check_collision(self):
+        for ball in self.opponents:
+            r = ball.info()[2]
+            x = ball.info()[0]
+            y = ball.info()[1]
+            dx = ball.info()[3]
+            dy = ball.info()[4]
+            if x != self.x and y != self.y:
+                distance = ((x - self.x)**2 + (y - self.y)**2)**0.5
+                if distance <= r + self.r:
+                    ball.collision(self.dx, self.dy)
+                    self.dx = dx
+                    self.dy = dy
+
+    def collision(self, new_dx, new_dy):
+        self.dx = new_dx
+        self.dy = new_dy
 
     def is_shoot(self):
         canvas.delete(self.ball_id)
@@ -55,7 +71,7 @@ def canvas_click(event):
     for ball in balls:
         target = ball.info()
         distance = ((target[0] - event.x) ** 2 + (target[1] - event.y) ** 2) ** 0.5
-        if distance <= target[2]:
+        if distance <= target[2] + 5:
             print('Get {} points!'.format(50 - target[2]))
             score += ball.is_shoot()
             print(score)
@@ -67,8 +83,9 @@ def canvas_click(event):
     else:
         print('miss :(')
 
+
 def make_new_balls():
-    if len(balls) < 2:
+    if len(balls) < 10:
         new = Ball(balls)
         balls.append(new)
     root.after(1000, make_new_balls)
@@ -76,8 +93,15 @@ def make_new_balls():
 
 def tick():
     for ball in balls:
+        ball.check_collision()
         ball.move()
         ball.draw()
+    root.after(1, tick)
+
+
+def tick2():
+    for ball in balls:
+        ball.check_collision()
     root.after(1, tick)
 
 
@@ -85,13 +109,14 @@ def main():
     global root, canvas, balls, score, balls_info
     root = Tk()
     root.geometry(str(WIDTH) + "x" + str(HEIGHT))
-    canvas = Canvas(root, width=1.2*WIDTH, height=1.2*HEIGHT, bg='white')
+    canvas = Canvas(root, width=WIDTH, height=HEIGHT, bg='white')
     canvas.pack(anchor=NW, fill=BOTH)
+    border = canvas.create_rectangle(0, 0, WIDTH, HEIGHT, fill="white", width=5)
     canvas.bind('<Button-1>', canvas_click)
     score = 0
     balls = []
-    balls_info = []
     make_new_balls()
+    tick2()
     tick()
     mainloop()
 
